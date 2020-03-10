@@ -71,12 +71,24 @@ function! s:buffers_on_move() abort
   call clap#preview#highlight_header()
 endfunction
 
+function! s:delete_action() abort
+endfunction
+
+function! s:confirm_msg() abort
+  let s:current_bufnr = s:extract_bufnr(g:clap.display.getcurline())
+  return 'Choose action for buffer '.s:current_bufnr
+endfunction
+
 let s:buffers = {}
 let s:buffers.sink = function('s:buffers_sink')
 let s:buffers.source = function('s:buffers')
 let s:buffers.on_move = function('s:buffers_on_move')
 let s:buffers.syntax = 'clap_buffers'
 let s:buffers.support_open_action = v:true
+let s:buffers.actions = {
+      \ 'msg': function('s:confirm_msg'),
+      \ '&Delete': function('s:delete_action'),
+      \ }
 
 let g:clap#provider#buffers# = s:buffers
 

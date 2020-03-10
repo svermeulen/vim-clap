@@ -149,6 +149,27 @@ impl<'a> LightCommand<'a> {
         }
     }
 
+    pub fn execute_and_gather_output(
+        &mut self,
+        args: &[String],
+    ) -> Result<Option<(usize, Vec<String>, Option<PathBuf>)>> {
+        let cmd_output = self.output()?;
+        let cmd_stdout = &cmd_output.stdout;
+
+        self.total = bytecount::count(cmd_stdout, b'\n');
+
+        if self.minimalize_job_overhead(cmd_stdout).is_ok() {
+            return Ok(None);
+        }
+
+        // Write the output to a tempfile if the lines are too many.
+        let (stdout_str, tempfile) = self.try_cache(&cmd_stdout, args)?;
+        let lines = self.try_prepend_icon(stdout_str.split('\n'));
+        let total = self.total;
+
+        Ok(Some((total, lines, tempfile)))
+    }
+
     pub fn execute(&mut self, args: &[String]) -> Result<()> {
         let cmd_output = self.output()?;
         let cmd_stdout = &cmd_output.stdout;

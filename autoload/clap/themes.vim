@@ -19,6 +19,10 @@ function! s:extract_or(group, what, gui_or_cterm, default) abort
   return empty(v) ? a:default : v
 endfunction
 
+function! clap#themes#extract_or(group, what, gui_or_cterm, default) abort
+  return s:extract_or(a:group, a:what, a:gui_or_cterm, a:default)
+endfunction
+
 " Try to sync the spinner bg with input window.
 function! s:hi_spinner() abort
   let vis_ctermbg = s:extract_or(s:input_default_hi_group, 'bg', 'cterm', '60')

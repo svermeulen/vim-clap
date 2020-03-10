@@ -55,14 +55,12 @@ fn substr_scorer(niddle: &str, haystack: &str) -> Option<(f64, Vec<usize>)> {
     ))
 }
 
-#[pyfunction]
-/// Filter the candidates given query using the fzy algorithm
-fn fuzzy_match(
+pub fn fuzzy_match_impl(
     query: &str,
     candidates: Vec<String>,
     winwidth: usize,
     enable_icon: bool,
-) -> PyResult<(Vec<Vec<usize>>, Vec<String>, HashMap<String, String>)> {
+) -> (Vec<Vec<usize>>, Vec<String>, HashMap<String, String>) {
     let scorer: Box<dyn Fn(&str) -> Option<(f64, Vec<usize>)>> = if query.contains(" ") {
         Box::new(|line: &str| substr_scorer(query, line))
     } else {
@@ -87,7 +85,18 @@ fn fuzzy_match(
         filtered.push(text);
     }
 
-    Ok((indices, filtered, truncated_map))
+    (indices, filtered, truncated_map)
+}
+
+#[pyfunction]
+/// Filter the candidates given query using the fzy algorithm
+fn fuzzy_match(
+    query: &str,
+    candidates: Vec<String>,
+    winwidth: usize,
+    enable_icon: bool,
+) -> PyResult<(Vec<Vec<usize>>, Vec<String>, HashMap<String, String>)> {
+    Ok(fuzzy_match_impl(query, candidates, winwidth, enable_icon))
 }
 
 /// This module is a python module implemented in Rust.
