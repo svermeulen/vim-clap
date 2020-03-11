@@ -68,6 +68,10 @@ function! s:move_manager.ctrl_l(_winid) abort
   call clap#handler#relaunch_providers()
 endfunction
 
+function! s:move_manager.shift_tab(_winid) abort
+  call clap#handler#invoke_actions()
+endfunction
+
 function! s:apply_on_typed() abort
   if g:clap.provider.is_sync()
     let g:__clap_should_refilter = v:true
@@ -144,6 +148,7 @@ let s:move_manager["\<C-D>"] = s:move_manager.ctrl_d
 let s:move_manager["\<C-G>"] = s:move_manager["\<Esc>"]
 let s:move_manager["\<C-U>"] = s:move_manager.ctrl_u
 let s:move_manager["\<C-L>"] = s:move_manager.ctrl_l
+let s:move_manager["\<S-TAB>"] = s:move_manager.shift_tab
 
 function! s:define_open_action_filter() abort
   for k in keys(g:clap_open_action)

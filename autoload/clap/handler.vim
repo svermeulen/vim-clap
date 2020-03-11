@@ -167,5 +167,31 @@ function! clap#handler#try_open(action) abort
   endif
 endfunction
 
+function! clap#handler#invoke_actions() abort
+  if has_key(g:clap.provider._(), 'actions')
+    if !has('nvim')
+      call clap#popup#menu#create()
+      return ''
+    endif
+    let provider_actions = g:clap.provider._().actions
+    if has_key(provider_actions, 'msg')
+      let msg = provider_actions.msg()
+    else
+      let msg = 'Choose actions'
+    endif
+    let choices = filter(keys(provider_actions), 'v:val !~# "msg"')
+    let choice_num = confirm(msg, join(choices, '\n'))
+    let choice = choices[choice_num-1]
+    if has_key(provider_actions, choice)
+      call provider_actions[choice]()
+    else
+      echoerr choice.' does not exist'
+    endif
+  else
+    echom 'No actions for this provider'
+  endif
+  return ''
+endfunction
+
 let &cpoptions = s:save_cpo
 unlet s:save_cpo
