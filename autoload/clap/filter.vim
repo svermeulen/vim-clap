@@ -45,10 +45,10 @@ if s:can_use_python
 
   function! clap#filter#(query, candidates) abort
     try
-      return clap#filter#python#(a:query, a:candidates, winwidth(g:clap.display.winid), s:enable_icon())
+      return clap#filter#sync#python#(a:query, a:candidates, winwidth(g:clap.display.winid), s:enable_icon())
     catch
       call clap#helper#echo_error(v:exception)
-      return clap#filter#viml#(a:query, a:candidates)
+      return clap#filter#sync#viml#(a:query, a:candidates)
     endtry
   endfunction
 else

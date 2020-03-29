@@ -75,7 +75,7 @@ pub fn blines(
 pub fn dyn_fuzzy_filter_and_rank<I: Iterator<Item = String>>(
     query: &str,
     source: Source<I>,
-    algo: Algo,
+    algo: Option<Algo>,
     number: Option<usize>,
     enable_icon: bool,
     winwidth: Option<usize>,
@@ -88,6 +88,8 @@ pub fn dyn_fuzzy_filter_and_rank<I: Iterator<Item = String>>(
         std::io::{self, BufRead},
     };
 
+    let algo = algo.unwrap_or(Algo::Fzy);
+
     let scorer = |line: &str| match algo {
         Algo::Skim => fuzzy_indices(line, query),
         Algo::Fzy => match_and_score_with_positions(query, line)
@@ -95,7 +97,7 @@ pub fn dyn_fuzzy_filter_and_rank<I: Iterator<Item = String>>(
     };
 
     /// The constant to define the length of `top_` queues.
-    const ITEMS_TO_SHOW: usize = 8;
+    const ITEMS_TO_SHOW: usize = 50;
 
     const MAX_IDX: usize = ITEMS_TO_SHOW - 1;
 
@@ -301,16 +303,21 @@ pub fn dyn_fuzzy_filter_and_rank<I: Iterator<Item = String>>(
                 if total % 16 == 0 {
                     use std::time::{Duration, Instant};
 
-                    const UPDATE_INTERVAL: Duration = Duration::from_secs(2);
+                    const UPDATE_INTERVAL: Duration = Duration::from_millis(200);
 
                     let now = Instant::now();
                     if now > past + UPDATE_INTERVAL {
                         past = now;
-                        println_json!(total);
+                        // println_json!(total);
+                        let mut indices = Vec::with_capacity(top_results.len());
+                        let mut lines = Vec::with_capacity(top_results.len());
                         for &idx in top_results.iter() {
-                            let (text, _, indices) = std::ops::Index::index( buffer.as_slice(), idx);
-                            println_json!(text, indices);
+                            let (text, _, idxs) = std::ops::Index::index( buffer.as_slice(), idx);
+                            indices.push(idxs);
+                            let text = prepend_icon(&text);
+                            lines.push(text);
                         }
+                        println_json!(total, lines, indices);
                     }
                 }
 
@@ -419,7 +426,7 @@ mod tests {
     // results of which could be proved only be inspecting stdout.
     // Definetly not something you want to run with `cargo test`.
     #[ignore]
-    fn dynamic_results() {
+    fn dyn_endless_iter() {
         use std::time::{SystemTime, UNIX_EPOCH};
 
         const ALPHABET: [u8; 32] = [
@@ -441,6 +448,7 @@ mod tests {
 
         let mut changing_text: [u8; 16] = [ALPHABET[31]; 16];
         let mut total_lines_created: usize = 0;
+
         dyn_fuzzy_filter_and_rank(
             "abc",
             Source::List(
@@ -468,6 +476,26 @@ mod tests {
                     String::from_utf8(changing_text.as_ref().to_owned()).unwrap()
                 })
                 .take(usize::max_value() >> 8),
+            ),
+            Algo::Fzy,
+            Some(100),
+            false,
+            None,
+        )
+        .unwrap()
+    }
+
+    #[test]
+    // This is a very time-consuming test,
+    // results of which could be proved only be inspecting stdout.
+    // Definetly not something you want to run with `cargo test`.
+    #[ignore]
+    fn dynamic_results() {
+        dyn_fuzzy_filter_and_rank::<std::iter::Empty<_>>(
+            // dyn_fuzzy_filter_and_rank(
+            "abc",
+            Source::File(
+                "/Users/xuliucheng/.vim/plugged/vim-clap/crates/maple_cli/src/cmd/root.txt".into(),
             ),
             Algo::Fzy,
             Some(100),

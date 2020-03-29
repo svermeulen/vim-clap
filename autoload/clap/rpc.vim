@@ -125,5 +125,26 @@ function! clap#rpc#start(MessageHandler) abort
   return
 endfunction
 
+function! s:on_stdout(msg) abort
+  let decoded = json_decode(a:msg)
+  if has_key(decoded, 'total')
+    call clap#impl#refresh_matches_count(string(decoded.total))
+  endif
+  if has_key(decoded, 'lines')
+    call g:clap.display.set_lines(decoded.lines)
+  endif
+
+  if has_key(decoded, 'indices')
+    call clap#highlight#add_fuzzy_async(decoded.indices)
+  endif
+endfunction
+
+function! clap#rpc#start_dyn() abort
+  call clap#rpc#stop()
+  let s:MessageHandler = function('s:on_stdout')
+  let s:rpc_cmd = clap#maple#run('--number 100 filter --input /Users/xuliucheng/root.txt bitcoin')
+  call s:start_rpc()
+endfunction
+
 let &cpoptions = s:save_cpo
 unlet s:save_cpo

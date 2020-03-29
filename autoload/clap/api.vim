@@ -22,12 +22,16 @@ function! s:_setbufvar(varname, val) dict abort
   call setbufvar(self.bufnr, a:varname, a:val)
 endfunction
 
+function! s:setbufvar(bufnr, key, val) abort
+  call setbufvar(a:bufnr, a:key, a:val)
+endfunction
+
 function! s:_setbufvar_batch(dict) dict abort
-  call map(a:dict, { key, val -> setbufvar(self.bufnr, key, val) })
+  call map(a:dict, 's:setbufvar(self.bufnr, v:key, v:val)')
 endfunction
 
 function! clap#api#setbufvar_batch(bufnr, dict) abort
-  call map(a:dict, { key, val -> setbufvar(a:bufnr, key, val) })
+  call map(a:dict, 's:setbufvar(a:bufnr, v:key, v:val)')
 endfunction
 
 " If the user has specified the externalfilter option in the context.
@@ -68,7 +72,7 @@ else
     return line('$', self.winid)
   endfunction
 
-  function! display.win_is_valid() dict abort
+  function! s:_win_is_valid() dict abort
     return !empty(popup_getpos(self.winid))
   endfunction
 endif

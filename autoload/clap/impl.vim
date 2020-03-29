@@ -106,6 +106,11 @@ function! s:on_typed_async_impl() abort
     return
   endif
 
+  if exists('g:__clap_forerunner_tempfile')
+    call clap#filter_dyn#()
+    return
+  endif
+
   " Do not clear the outdated content as it would cause the annoying flicker.
   " call g:clap.display.clear()
 

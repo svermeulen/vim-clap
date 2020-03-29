@@ -90,7 +90,12 @@ else
       let group_idx = 1
       for idx in indices
         if group_idx < g:__clap_fuzzy_matches_hl_group_cnt + 1
-          call clap#highlight#add_highlight_at(lnum, idx+a:offset, 'ClapFuzzyMatches'.group_idx)
+          try
+            call clap#highlight#add_highlight_at(lnum, idx+a:offset, 'ClapFuzzyMatches'.group_idx)
+          catch
+            echom 'lines:'.string(g:lines).', lnum:'.lnum
+            echoerr '[apply_add_highlight]lnum:'.lnum.', indices:'.string(indices).', idx:'.string(idx+a:offset).', line'.string(getbufline(g:clap.display.bufnr, lnum+1)).'. EEE:'.v:exception
+          endtry
           let group_idx += 1
         else
           call clap#highlight#add_highlight_at(lnum, idx+a:offset, g:__clap_fuzzy_last_hl_group)
@@ -104,8 +109,12 @@ else
   endfunction
 
   function! clap#highlight#add_highlight_at(lnum, col, hl_group) abort
-    " 1-based
-    call prop_add(a:lnum+1, a:col+1, {'length': 1, 'type': a:hl_group, 'bufnr': g:clap.display.bufnr})
+    try
+      " 1-based
+      call prop_add(a:lnum+1, a:col+1, {'length': 1, 'type': a:hl_group, 'bufnr': g:clap.display.bufnr})
+    catch
+      echoerr '[add_highlight_at]want col:'.(a:col+1).', real line:'.string(getbufline(g:clap.display.bufnr, a:lnum+1))
+    endtry
   endfunction
 
 endif
