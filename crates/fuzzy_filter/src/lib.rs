@@ -3,7 +3,7 @@ use std::io::{self, BufRead};
 use std::path::PathBuf;
 
 use anyhow::Result;
-use extracted_fzy::match_and_score_with_positions;
+use fulf::utf8::match_and_score_with_positions;
 use fuzzy_matcher::skim::fuzzy_indices;
 use rayon::prelude::*;
 use structopt::clap::arg_enum;
@@ -39,15 +39,14 @@ impl<I: Iterator<Item = String>> From<PathBuf> for Source<I> {
 }
 
 pub type LinesTruncatedMap = HashMap<String, String>;
-pub type FuzzyMatchedLineInfo = (String, f64, Vec<usize>);
+pub type FuzzyMatchedLineInfo = (String, i64, Vec<usize>);
 
 impl<I: Iterator<Item = String>> Source<I> {
     pub fn filter(self, algo: Algo, query: &str) -> Result<Vec<FuzzyMatchedLineInfo>> {
         let scorer = |line: &str| match algo {
-            Algo::Skim => {
-                fuzzy_indices(line, &query).map(|(score, indices)| (score as f64, indices))
-            }
-            Algo::Fzy => match_and_score_with_positions(&query, line),
+            Algo::Skim => fuzzy_indices(line, &query),
+            Algo::Fzy => match_and_score_with_positions(&query, line)
+                .map(|(score, indices)| (score as i64, indices)),
         };
 
         let filtered = match self {
@@ -82,7 +81,7 @@ pub fn fuzzy_filter_and_rank<I: Iterator<Item = String>>(
     query: &str,
     source: Source<I>,
     algo: Algo,
-) -> Result<Vec<(String, f64, Vec<usize>)>> {
+) -> Result<Vec<FuzzyMatchedLineInfo>> {
     let mut ranked = source.filter(algo, query)?;
 
     ranked.par_sort_unstable_by(|(_, v1, _), (_, v2, _)| v2.partial_cmp(&v1).unwrap());
@@ -105,11 +104,11 @@ pub fn fuzzy_filter_and_rank<I: Iterator<Item = String>>(
 ///  `last_idx - start >= winwidth`
 /// |~~~~~~~~~~~~~~~~~~~~~~~~~~~~[xx--x------------------------------x-----]
 ///
-pub fn truncate_long_matched_lines(
-    lines: impl IntoIterator<Item = FuzzyMatchedLineInfo>,
+pub fn truncate_long_matched_lines<T>(
+    lines: impl IntoIterator<Item = (String, T, Vec<usize>)>,
     winwidth: usize,
     starting_point: Option<usize>,
-) -> (Vec<FuzzyMatchedLineInfo>, LinesTruncatedMap) {
+) -> (Vec<(String, T, Vec<usize>)>, LinesTruncatedMap) {
     let mut truncated_map = HashMap::new();
     let lines = lines
         .into_iter()

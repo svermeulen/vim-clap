@@ -1,6 +1,6 @@
 #![feature(pattern)]
 
-use extracted_fzy::match_and_score_with_positions;
+use fulf::utf8::match_and_score_with_positions;
 use fuzzy_filter::truncate_long_matched_lines;
 use pyo3::prelude::*;
 use pyo3::wrap_pyfunction;
@@ -66,7 +66,9 @@ fn fuzzy_match(
     let scorer: Box<dyn Fn(&str) -> Option<(f64, Vec<usize>)>> = if query.contains(" ") {
         Box::new(|line: &str| substr_scorer(query, line))
     } else {
-        Box::new(|line: &str| match_and_score_with_positions(query, line))
+        Box::new(|line: &str| {
+            match_and_score_with_positions(query, line).map(|(score, idxs)| (score as f64, idxs))
+        })
     };
 
     let mut ranked = candidates
@@ -98,31 +100,36 @@ fn fuzzymatch_rs(_py: Python, m: &PyModule) -> PyResult<()> {
     Ok(())
 }
 
-#[test]
-fn py_and_rs_subscore_should_work() {
-    use pyo3::{prelude::*, types::PyModule};
-    use std::fs;
+#[cfg(test)]
+mod tests {
+    use super::*;
 
-    let cur_dir = std::env::current_dir().unwrap();
-    let py_path = cur_dir.parent().unwrap().join("scorer.py");
-    let py_source_code = fs::read_to_string(py_path).unwrap();
+    #[test]
+    fn py_and_rs_subscore_should_work() {
+        use pyo3::{prelude::*, types::PyModule};
+        use std::fs;
 
-    let gil = Python::acquire_gil();
-    let py = gil.python();
-    let py_scorer = PyModule::from_code(py, &py_source_code, "scorer.py", "scorer").unwrap();
+        let cur_dir = std::env::current_dir().unwrap();
+        let py_path = cur_dir.parent().unwrap().join("scorer.py");
+        let py_source_code = fs::read_to_string(py_path).unwrap();
 
-    let test_cases = vec![
-        ("su ou", "substr_scorer_should_work"),
-        ("su ork", "substr_scorer_should_work"),
-    ];
+        let gil = Python::acquire_gil();
+        let py = gil.python();
+        let py_scorer = PyModule::from_code(py, &py_source_code, "scorer.py", "scorer").unwrap();
 
-    for (niddle, haystack) in test_cases.into_iter() {
-        let py_result: (f64, Vec<usize>) = py_scorer
-            .call1("substr_scorer", (niddle, haystack))
-            .unwrap()
-            .extract()
-            .unwrap();
-        let rs_result = substr_scorer(niddle, haystack).unwrap();
-        assert_eq!(py_result, rs_result);
+        let test_cases = vec![
+            ("su ou", "substr_scorer_should_work"),
+            ("su ork", "substr_scorer_should_work"),
+        ];
+
+        for (niddle, haystack) in test_cases.into_iter() {
+            let py_result: (f64, Vec<usize>) = py_scorer
+                .call1("substr_scorer", (niddle, haystack))
+                .unwrap()
+                .extract()
+                .unwrap();
+            let rs_result = substr_scorer(niddle, haystack).unwrap();
+            assert_eq!(py_result, rs_result);
+        }
     }
 }
