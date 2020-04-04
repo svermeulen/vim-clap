@@ -62,6 +62,9 @@ inoremap <silent> <buffer> <Backspace> <C-R>=clap#handler#bs_action()<CR>
 inoremap <silent> <buffer> <C-j> <C-R>=clap#navigation#linewise('down')<CR>
 inoremap <silent> <buffer> <C-k> <C-R>=clap#navigation#linewise('up')<CR>
 
+inoremap <silent> <buffer> <C-\> <Esc>:<c-u>call clap#handler#exit()<CR>
+inoremap <silent> <buffer> <c-o> <C-R>=clap#navigation#scroll('down')<CR>
+
 call clap#util#define_open_action_mappings()
 
 if g:clap_insert_mode_only
