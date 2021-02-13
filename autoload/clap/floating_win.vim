@@ -325,23 +325,23 @@ function! s:get_config_preview(height) abort
 endfunction
 
 function! s:create_preview_win(height) abort
-  if !exists('s:display_winid') || !nvim_win_is_valid(s:display_winid)
-    return
-  endif
+  " if !exists('s:display_winid') || !nvim_win_is_valid(s:display_winid)
+  "   return
+  " endif
 
-  if !nvim_buf_is_valid(s:preview_bufnr)
-    let s:preview_bufnr = nvim_create_buf(v:false, v:true)
-  endif
-  silent let s:preview_winid = nvim_open_win(s:preview_bufnr, v:false, s:get_config_preview(a:height))
+  " if !nvim_buf_is_valid(s:preview_bufnr)
+  "   let s:preview_bufnr = nvim_create_buf(v:false, v:true)
+  " endif
+  " silent let s:preview_winid = nvim_open_win(s:preview_bufnr, v:false, s:get_config_preview(a:height))
 
-  call setwinvar(s:preview_winid, '&spell', 0)
-  call setwinvar(s:preview_winid, '&winhl', s:preview_winhl)
-  " call setwinvar(s:preview_winid, '&winblend', 15)
+  " call setwinvar(s:preview_winid, '&spell', 0)
+  " call setwinvar(s:preview_winid, '&winhl', s:preview_winhl)
+  " " call setwinvar(s:preview_winid, '&winblend', 15)
 
-  call setbufvar(s:preview_bufnr, '&signcolumn', 'no')
+  " call setbufvar(s:preview_bufnr, '&signcolumn', 'no')
 
-  let g:clap#floating_win#preview.winid = s:preview_winid
-  let g:clap#floating_win#preview.bufnr = s:preview_bufnr
+  " let g:clap#floating_win#preview.winid = s:preview_winid
+  " let g:clap#floating_win#preview.bufnr = s:preview_bufnr
 endfunction
 
 function! s:max_preview_size() abort

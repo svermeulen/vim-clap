@@ -104,49 +104,49 @@ function! s:try_adjust_preview() abort
 endfunction
 
 function! s:create_preview() abort
-  if !exists('s:preview_winid') || empty(popup_getpos(s:preview_winid))
-    let pos = popup_getpos(s:display_winid)
-    let preview_opts = {
-          \ 'wrap': v:true,
-          \ 'zindex': 100,
-          \ 'scrollbar': 0,
-          \ 'highlight': 'ClapPreview',
-          \ 'minwidth': pos.width,
-          \ 'maxwidth': pos.width,
-          \ 'posinvert': v:false,
-          \ }
-    if g:clap_preview_direction ==# 'LR'
-      let preview_opts['line'] = pos.line - 1
-      let preview_opts['height'] = pos.height
-      let preview_opts['col'] = pos.col + pos.width
-      let preview_opts['minheight'] = s:display_opts.height - 1
-      let preview_opts['maxheight'] = s:display_opts.height - 1
-    else
-      let preview_opts['line'] = pos.line + pos.height
-      let preview_opts['height'] = pos.height
-      let preview_opts['col'] = pos.col
-    endif
-    if g:clap_popup_border !=? 'nil'
-      let borderchars = ['─', '│', '─', '│']
-      if g:clap_popup_border ==? 'rounded'
-        let borderchars += ['╭', '╮', '╯', '╰']
-      else
-        let borderchars += ['┌', '┐', '┘', '└']
-      endif
-      let preview_opts.border = []
-      let preview_opts.borderchars = borderchars
-      let preview_opts.minwidth -= 2
-      let preview_opts.maxwidth -= 2
-    endif
-    let s:preview_winid = popup_create([], preview_opts)
-    call setwinvar(s:preview_winid, '&spell', 0)
-    if g:clap_preview_direction !=# 'LR'
-      call popup_hide(s:preview_winid)
-    endif
-    call win_execute(s:preview_winid, 'setlocal nonumber')
-    let g:clap#popup#preview.winid = s:preview_winid
-    let g:clap#popup#preview.bufnr = winbufnr(s:preview_winid)
-  endif
+  " if !exists('s:preview_winid') || empty(popup_getpos(s:preview_winid))
+  "   let pos = popup_getpos(s:display_winid)
+  "   let preview_opts = {
+  "         \ 'wrap': v:true,
+  "         \ 'zindex': 100,
+  "         \ 'scrollbar': 0,
+  "         \ 'highlight': 'ClapPreview',
+  "         \ 'minwidth': pos.width,
+  "         \ 'maxwidth': pos.width,
+  "         \ 'posinvert': v:false,
+  "         \ }
+  "   if g:clap_preview_direction ==# 'LR'
+  "     let preview_opts['line'] = pos.line - 1
+  "     let preview_opts['height'] = pos.height
+  "     let preview_opts['col'] = pos.col + pos.width
+  "     let preview_opts['minheight'] = s:display_opts.height - 1
+  "     let preview_opts['maxheight'] = s:display_opts.height - 1
+  "   else
+  "     let preview_opts['line'] = pos.line + pos.height
+  "     let preview_opts['height'] = pos.height
+  "     let preview_opts['col'] = pos.col
+  "   endif
+  "   if g:clap_popup_border !=? 'nil'
+  "     let borderchars = ['─', '│', '─', '│']
+  "     if g:clap_popup_border ==? 'rounded'
+  "       let borderchars += ['╭', '╮', '╯', '╰']
+  "     else
+  "       let borderchars += ['┌', '┐', '┘', '└']
+  "     endif
+  "     let preview_opts.border = []
+  "     let preview_opts.borderchars = borderchars
+  "     let preview_opts.minwidth -= 2
+  "     let preview_opts.maxwidth -= 2
+  "   endif
+  "   let s:preview_winid = popup_create([], preview_opts)
+  "   call setwinvar(s:preview_winid, '&spell', 0)
+  "   if g:clap_preview_direction !=# 'LR'
+  "     call popup_hide(s:preview_winid)
+  "   endif
+  "   call win_execute(s:preview_winid, 'setlocal nonumber')
+  "   let g:clap#popup#preview.winid = s:preview_winid
+  "   let g:clap#popup#preview.bufnr = winbufnr(s:preview_winid)
+  " endif
 endfunction
 
 function! s:create_indicator() abort
